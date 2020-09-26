@@ -9,9 +9,9 @@
     "youtube-dl",
     "leecher"
   ],
-  "repository": "https://github.com/gupta-vipin/PublicLeech",
+  "repository": "https://github.com/gupta-vipin/Url-TGBot",
   "success_url": "https://telegram.dog/vipingupat_1",
-  "website": "https://github.com/gupta-vipin/PublicLeech",
+  "website": "https://github.com/gupta-vipin/Url-TGBot",
   "env": {
     "ENV": {
       "description": "Setting this to ANYTHING will enable webhooks when in env mode",
