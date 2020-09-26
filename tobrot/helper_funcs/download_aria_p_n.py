@@ -11,78 +11,16 @@ logging.basicConfig(
 logging.getLogger("pyrogram").setLevel(logging.WARNING)
 LOGGER = logging.getLogger(__name__)
 
-import aria2p
 import asyncio
 import os
 from tobrot.helper_funcs.upload_to_tg import upload_to_tg
 from tobrot.helper_funcs.create_compressed_archive import create_archive
 
 from tobrot import (
-    ARIA_TWO_STARTED_PORT,
-    MAX_TIME_TO_WAIT_FOR_TORRENTS_TO_START,
     AUTH_CHANNEL,
     DOWNLOAD_LOCATION,
     EDIT_SLEEP_TIME_OUT
 )
-
-
-async def aria_start():
-    aria2_daemon_start_cmd = []
-    # start the daemon, aria2c command
-    aria2_daemon_start_cmd.append("aria2c")
-    # aria2_daemon_start_cmd.append("--allow-overwrite=true")
-    aria2_daemon_start_cmd.append("--daemon=true")
-    # aria2_daemon_start_cmd.append(f"--dir={DOWNLOAD_LOCATION}")
-    # TODO: this does not work, need to investigate this.
-    # but for now, https://t.me/TrollVoiceBot?start=858
-    aria2_daemon_start_cmd.append("--enable-rpc")
-    aria2_daemon_start_cmd.append("--follow-torrent=mem")
-    aria2_daemon_start_cmd.append("--max-connection-per-server=10")
-    aria2_daemon_start_cmd.append("--min-split-size=10M")
-    aria2_daemon_start_cmd.append("--rpc-listen-all=false")
-    aria2_daemon_start_cmd.append(f"--rpc-listen-port={ARIA_TWO_STARTED_PORT}")
-    aria2_daemon_start_cmd.append("--rpc-max-request-size=1024M")
-    aria2_daemon_start_cmd.append("--seed-ratio=0.0")
-    aria2_daemon_start_cmd.append("--seed-time=1")
-    aria2_daemon_start_cmd.append("--split=10")
-    aria2_daemon_start_cmd.append(f"--bt-stop-timeout={MAX_TIME_TO_WAIT_FOR_TORRENTS_TO_START}")
-    #
-    LOGGER.info(aria2_daemon_start_cmd)
-    #
-    process = await asyncio.create_subprocess_exec(
-        *aria2_daemon_start_cmd,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE
-    )
-    stdout, stderr = await process.communicate()
-    LOGGER.info(stdout)
-    LOGGER.info(stderr)
-    aria2 = aria2p.API(
-        aria2p.Client(
-            host="http://localhost",
-            port=ARIA_TWO_STARTED_PORT,
-            secret=""
-        )
-    )
-    return aria2
-
-
-def add_magnet(aria_instance, magnetic_link, c_file_name):
-    options = None
-    # if c_file_name is not None:
-    #     options = {
-    #         "dir": c_file_name
-    #     }
-    try:
-        download = aria_instance.add_magnet(
-            magnetic_link,
-            options=options
-        )
-    except Exception as e:
-        return False, "**FAILED** \n" + str(e) + " \nPlease do not send SLOW links. Read /help"
-    else:
-        return True, "" + download.gid + ""
-
 
 def add_url(aria_instance, text_url, c_file_name):
     options = None
@@ -124,21 +62,6 @@ async def call_apropriate_function(
         sent_message_to_update_tg_p,
         None
     )
-    if incoming_link.startswith("magnet:") or incoming_link.lower().endswith(".torrent"):
-        #
-        err_message = await check_metadata(aria_instance, err_message)
-        #
-        await asyncio.sleep(1)
-        if err_message is not None:
-            await check_progress_for_dl(
-                aria_instance,
-                err_message,
-                sent_message_to_update_tg_p,
-                None
-            )
-        else:
-            return False, "can't get metadata \n\n#stopped"
-    await asyncio.sleep(1)
     file = aria_instance.get_download(err_message)
     to_upload_file = file.name
     #
